@@ -1,7 +1,9 @@
 import { products } from '../constants/index.js';
 
 export const getProducts = async (req, res) => {
-  res.send(products);
+  res
+    .status(201)
+    .send(products, { message: 'All products retrieved successfully' });
 };
 
 export const getOneProduct = async (req, res) => {
@@ -17,7 +19,9 @@ export const getOneProduct = async (req, res) => {
     return res.status(404).send({ message: 'Product not found' });
   }
 
-  return res.status(200).send(products[productIndex]);
+  return res.status(200).send(products[productIndex], {
+    message: 'Products retrieved successfully',
+  });
 };
 
 export const createProduct = async (req, res) => {
@@ -41,7 +45,9 @@ export const createProduct = async (req, res) => {
 
   console.log(newProduct);
 
-  return res.status(201).send(newProduct);
+  return res
+    .status(201)
+    .send(newProduct, { message: 'Product created successfully' });
 };
 
 export const updateProduct = async (req, res) => {
@@ -67,7 +73,9 @@ export const updateProduct = async (req, res) => {
 
   products[productIndex] = updatedProduct;
 
-  return res.status(200).send(updatedProduct);
+  return res
+    .status(200)
+    .send(updatedProduct, { message: 'Product updated successfully' });
 };
 
 export const deleteProduct = async (req, res) => {
