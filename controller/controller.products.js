@@ -1,6 +1,7 @@
 import { products } from '../constants/index.js';
 
 export const getProducts = async (req, res) => {
+  // return all products
   res
     .status(201)
     .send(products, { message: 'All products retrieved successfully' });
@@ -11,10 +12,12 @@ export const getOneProduct = async (req, res) => {
     params: { id },
   } = req;
 
+  // find product by id
   const productIndex = products.findIndex(
     (product) => product.id === parseInt(id),
   );
 
+  // if product not found
   if (productIndex === -1) {
     return res.status(404).send({ message: 'Product not found' });
   }
@@ -29,6 +32,12 @@ export const createProduct = async (req, res) => {
     body: { name, description, size },
   } = req;
 
+  // reject if any field is missing
+  if (!name || !description || !size) {
+    return res.status(400).send({ message: 'All fields are required' });
+  }
+
+  // create new product
   const newProduct = {
     id: products[products.length - 1].id + 1,
 
@@ -56,6 +65,7 @@ export const updateProduct = async (req, res) => {
     body: { name, description, size },
   } = req;
 
+  // find product by id
   const productIndex = products.findIndex(
     (product) => product.id === parseInt(id),
   );
@@ -64,6 +74,12 @@ export const updateProduct = async (req, res) => {
     return res.status(404).send({ message: 'Product not found' });
   }
 
+  // reject if any field is missing
+  if (!name || !description || !size) {
+    return res.status(400).send({ message: 'All fields are required' });
+  }
+
+  // update product
   const updatedProduct = {
     id: parseInt(id),
     name,
@@ -71,6 +87,7 @@ export const updateProduct = async (req, res) => {
     size,
   };
 
+  // save updated product
   products[productIndex] = updatedProduct;
 
   return res
@@ -83,14 +100,17 @@ export const deleteProduct = async (req, res) => {
     params: { id },
   } = req;
 
+  // find product by id
   const productIndex = products.findIndex(
     (product) => product.id === parseInt(id),
   );
 
+  // if product not found
   if (productIndex === -1) {
     return res.status(404).send({ message: 'Product not found' });
   }
 
+  // delete product
   products.splice(productIndex, 1);
 
   return res.status(200).send({ message: 'Product deleted successfully' });
