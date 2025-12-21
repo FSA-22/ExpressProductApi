@@ -1,4 +1,4 @@
-import { products } from '../constants/index.js';
+import { products } from '../database/index.js';
 
 export const getProducts = async (req, res) => {
   // return all products
