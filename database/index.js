@@ -12,11 +12,4 @@ export const users = [
     role: 'admin',
     refreshToken: null,
   },
-  {
-    id: 2,
-    username: 'user',
-    password: bcrypt.hashSync('user124', 10),
-    role: 'user',
-    refreshToken: null,
-  },
 ];

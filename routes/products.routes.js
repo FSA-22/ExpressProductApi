@@ -14,34 +14,14 @@ import { authenticate } from '../middleware/authentication.js';
 
 const productRouter = Router();
 
-productRouter.post(
-  '/',
-  authenticate,
-  authorize('admin', 'user'),
-  createProduct,
-);
+productRouter.post('/', authenticate, authorize('admin'), createProduct);
 
 productRouter.get('/', authenticate, authorize('admin', 'user'), getProducts);
 
-productRouter.get(
-  '/:id',
-  authenticate,
-  authorize('admin', 'user'),
-  getOneProduct,
-);
+productRouter.get('/:id', authenticate, authorize('admin'), getOneProduct);
 
-productRouter.put(
-  '/:id',
-  authenticate,
-  authorize('admin', 'user'),
-  updateProduct,
-);
+productRouter.put('/:id', authenticate, authorize('admin'), updateProduct);
 
-productRouter.delete(
-  '/:id',
-  authenticate,
-  authorize('admin', 'user'),
-  deleteProduct,
-);
+productRouter.delete('/:id', authenticate, authorize('admin'), deleteProduct);
 
 export default productRouter;
