@@ -1,15 +1,19 @@
-## Product CRUD API
+# Product CRUD API – Express.js
 
-A RESTful API built with Node.js + Express.js, allowing Create, Read, Update, and Delete operations, the project structure is scalable, modular DX oriented, using in-memory storage
+A secure Product CRUD API built with Express.js using in-memory storage,
+JWT authentication, refresh tokens, and role-based authorization.
 
-# Features
+## Features
 
-The initial features are listed below:
+- Product CRUD operations
+- JWT Access & Refresh Tokens
+- Role-based authorization (Admin / User)
+- In-memory data storage
+- Environment variables with dotenv
 
-- CRUD endpoints for products
-- Start with in-memory
+## Setup
 
-# Setup
-
+```bash
 npm install
 node app.js
+```
