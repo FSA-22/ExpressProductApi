@@ -11,10 +11,17 @@ import {
 } from '../controllers/products.js';
 import { authorize } from '../middleware/authorize.js';
 import { authenticate } from '../middleware/authentication.js';
+import upload from '../middleware/upload.js';
 
 const productRouter = Router();
 
-productRouter.post('/', authenticate, authorize('admin'), createProduct);
+productRouter.post(
+  '/',
+  authenticate,
+  authorize('admin'),
+  upload.single('image'),
+  createProduct,
+);
 
 productRouter.get('/', authenticate, authorize('admin', 'user'), getProducts);
 

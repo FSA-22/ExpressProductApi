@@ -1,106 +1,72 @@
-import { products } from '../database/index.js';
+import Product from '../models/product.model.js';
 
-/**
- * @function getProducts
- * @description
- * Retrieves all products from the data store.
- *
- * This controller:
- * - Returns the full list of products
- * - Does not apply pagination or filtering (intentional for simplicity)
- *
- * @route GET /products
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- *
- * @returns {200} List of all products
- */
 export const getProducts = async (req, res) => {
-  // Return all products from the in-memory store
-  return res
-    .status(200)
-    .send(products, { message: 'All products retrieved successfully' });
-};
+  try {
+    const products = await Product.find();
 
-/**
- * @function getOneProduct
- * @description
- * Retrieves a single product by its unique identifier.
- *
- * This controller:
- * - Extracts the product ID from route parameters
- * - Searches for the product in the data store
- * - Returns 404 if the product does not exist
- *
- * @route GET /products/:id
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- *
- * @returns {200} Product found
- * @returns {404} Product not found
- */
+    return res.status(200).json({
+      message: 'All products retrieved successfully',
+      data: products,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Failed to retrieve products',
+    });
+  }
+};
 
 export const getOneProduct = async (req, res) => {
-  const {
-    params: { id },
-  } = req;
+  const { id } = req.params;
 
-  // Locate product index by ID
-  const productIndex = products.findIndex(
-    (product) => product.id === parseInt(id, 10),
-  );
+  try {
+    const product = await Product.findById(id);
 
-  // Handle non-existent product
-  if (productIndex === -1) {
-    return res.status(404).send({ message: 'Product not found' });
+    if (!product) {
+      return res.status(404).json({
+        message: 'Product not found',
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Product retrieved successfully',
+      data: product,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      message: 'Invalid product ID',
+    });
   }
-
-  return res.status(200).send(products[productIndex], {
-    message: 'Product retrieved successfully',
-  });
 };
 
-/**
- * @function createProduct
- * @description
- * Creates and persists a new product.
- *
- * This controller:
- * - Validates required fields
- * - Generates a new incremental product ID
- * - Stores the product in memory
- *
- * @route POST /products
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- *
- * @returns {201} Product created successfully
- * @returns {400} Missing required fields
- */
 export const createProduct = async (req, res) => {
-  const {
-    body: { name, description, size },
-  } = req;
+  const { name, description, price } = req.body;
 
-  // Validate required fields
-  if (!name || !description || !size) {
-    return res.status(400).send({ message: 'All fields are required' });
+  console.log('FILE:', req.file);
+  console.log('BODY:', req.body);
+
+  if (!name || !description || !price) {
+    return res.status(400).json({
+      message: 'Name, description, and price are required',
+    });
   }
 
-  // Create new product object
-  const newProduct = {
-    id: products.length ? products[products.length - 1].id + 1 : 1,
+  if (!req.file) {
+    return res.status(400).json({
+      message: 'Product image is required',
+    });
+  }
+
+  const product = await Product.create({
     name,
     description,
-    size,
-  };
+    price,
+    imageUrl: req.file.path, // Cloudinary secure URL
+  });
 
-  // Persist product
-  products.push(newProduct);
-
-  return res
-    .status(201)
-    .send(newProduct, { message: 'Product created successfully' });
+  res.status(201).json({
+    message: 'Product created successfully',
+    data: product,
+  });
 };
 
 /**
@@ -108,89 +74,79 @@ export const createProduct = async (req, res) => {
  * @description
  * Updates an existing product by ID.
  *
- * This controller:
- * - Validates product existence
- * - Ensures all required fields are provided
- * - Replaces the existing product record
+ * Design decisions:
+ * - Uses findByIdAndUpdate for atomic update
+ * - `new: true` ensures updated document is returned
  *
  * @route PUT /products/:id
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- *
- * @returns {200} Product updated successfully
- * @returns {400} Missing required fields
- * @returns {404} Product not found
  */
 export const updateProduct = async (req, res) => {
-  const {
-    params: { id },
-    body: { name, description, size },
-  } = req;
+  const { id } = req.params;
+  const { name, description, imageUrl, price } = req.body;
 
-  // Locate product index
-  const productIndex = products.findIndex(
-    (product) => product.id === parseInt(id, 10),
-  );
-
-  // Handle non-existent product
-  if (productIndex === -1) {
-    return res.status(404).send({ message: 'Product not found' });
+  if (!name || !description || !imageUrl || !price) {
+    return res.status(400).json({
+      message: 'All fields are required',
+    });
   }
 
-  // Validate required fields
-  if (!name || !description || !size) {
-    return res.status(400).send({ message: 'All fields are required' });
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {
+        name,
+        description,
+        imageUrl,
+        price,
+      },
+      { new: true },
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({
+        message: 'Product not found',
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Product updated successfully',
+      data: updatedProduct,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      message: 'Invalid product ID',
+    });
   }
-
-  // Create updated product object
-  const updatedProduct = {
-    id: parseInt(id, 10),
-    name,
-    description,
-    size,
-  };
-
-  // Persist updated product
-  products[productIndex] = updatedProduct;
-
-  return res
-    .status(200)
-    .send(updatedProduct, { message: 'Product updated successfully' });
 };
 
 /**
  * @function deleteProduct
  * @description
- * Deletes a product by its unique identifier.
+ * Deletes a product by ID.
  *
- * This controller:
- * - Validates product existence
- * - Removes the product from the data store
+ * Design decisions:
+ * - Uses findByIdAndDelete for single DB operation
  *
  * @route DELETE /products/:id
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- *
- * @returns {200} Product deleted successfully
- * @returns {404} Product not found
  */
 export const deleteProduct = async (req, res) => {
-  const {
-    params: { id },
-  } = req;
+  const { id } = req.params;
 
-  // Locate product index
-  const productIndex = products.findIndex(
-    (product) => product.id === parseInt(id, 10),
-  );
+  try {
+    const deletedProduct = await Product.findByIdAndDelete(id);
 
-  // Handle non-existent product
-  if (productIndex === -1) {
-    return res.status(404).send({ message: 'Product not found' });
+    if (!deletedProduct) {
+      return res.status(404).json({
+        message: 'Product not found',
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Product deleted successfully',
+    });
+  } catch (error) {
+    return res.status(400).json({
+      message: 'Invalid product ID',
+    });
   }
-
-  // Remove product from store
-  products.splice(productIndex, 1);
-
-  return res.status(200).send({ message: 'Product deleted successfully' });
 };
