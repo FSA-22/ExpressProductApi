@@ -1,12 +1,13 @@
 // Node modules
 import express from 'express';
 
-// App modules
+// Custom modules
 import { PORT } from './config/env.js';
 import productRouter from './routes/products.routes.js';
 import authRouter from './routes/auth.routes.js';
 import connectDB from './databases/mongoDB.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
+import todoRouter from './routes/todo.route.js';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(errorMiddleware);
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/products', productRouter);
+app.use('/api/v1/todos', todoRouter);
 
 let server;
 

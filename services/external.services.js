@@ -1,18 +1,26 @@
-import axios from "axios";
+import axios from 'axios';
+import Todo from '../models/todo.model.js';
 
-/**
- * Fetch and map external product data
- */
-export const fetchExternalProducts = async () => {
-  const { data } = await axios.get(
-    "https://jsonplaceholder.typicode.com/todos/1",
-  );
+export const fetchAndSaveTodo = async () => {
+  try {
+    const apiUrl = 'https://jsonplaceholder.typicode.com/todos/1';
 
-  return data.map((item) => ({
-    name: item.title,
-    description: item.description,
-    price: item.price,
-    size: "N/A",
-    imageUrl: item.image,
-  }));
+    const response = await axios.get(apiUrl);
+
+    const data = response.data;
+
+    // Explicit mapping (do not trust external contracts)
+    const mappedTodo = {
+      externalId: data.id,
+      userId: data.userId,
+      title: data.title,
+      completed: data.completed,
+    };
+
+    const savedTodo = await Todo.create(mappedTodo);
+
+    return savedTodo;
+  } catch (error) {
+    throw new Error(`Failed to fetch and save todo: ${error.message}`);
+  }
 };
