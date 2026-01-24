@@ -1,6 +1,6 @@
 import Product from '../models/product.model.js';
 
-export const getProducts = async (req, res) => {
+export const getProducts = async (req, res, next) => {
   try {
     const products = await Product.find();
 
@@ -9,13 +9,15 @@ export const getProducts = async (req, res) => {
       data: products,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Failed to retrieve products',
-    });
+    // return res.status(500).json({
+    //   message: 'Failed to retrieve products',
+    // });
+
+    next(error);
   }
 };
 
-export const getOneProduct = async (req, res) => {
+export const getOneProduct = async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -32,55 +34,50 @@ export const getOneProduct = async (req, res) => {
       data: product,
     });
   } catch (error) {
-    return res.status(400).json({
-      message: 'Invalid product ID',
-    });
+    // return res.status(400).json({
+    //   message: 'Invalid product ID',
+    // });
+
+    next(error);
   }
 };
 
-export const createProduct = async (req, res) => {
-  const { name, description, price } = req.body;
+export const createProduct = async (req, res, next) => {
+  try {
+    const { name, description, price } = req.body;
 
-  console.log('FILE:', req.file);
-  console.log('BODY:', req.body);
+    console.log('FILE:', req.file);
+    console.log('BODY:', req.body);
 
-  if (!name || !description || !price) {
-    return res.status(400).json({
-      message: 'Name, description, and price are required',
+    if (!name || !description || !price) {
+      return res.status(400).json({
+        message: 'Name, description, and price are required',
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: 'Product image is required',
+      });
+    }
+
+    const product = await Product.create({
+      name,
+      description,
+      price,
+      imageUrl: req.file.path, // Cloudinary secure URL
     });
-  }
 
-  if (!req.file) {
-    return res.status(400).json({
-      message: 'Product image is required',
+    return res.status(201).json({
+      message: 'Product created successfully',
+      data: product,
     });
+  } catch (error) {
+    next(error);
   }
-
-  const product = await Product.create({
-    name,
-    description,
-    price,
-    imageUrl: req.file.path, // Cloudinary secure URL
-  });
-
-  res.status(201).json({
-    message: 'Product created successfully',
-    data: product,
-  });
 };
 
-/**
- * @function updateProduct
- * @description
- * Updates an existing product by ID.
- *
- * Design decisions:
- * - Uses findByIdAndUpdate for atomic update
- * - `new: true` ensures updated document is returned
- *
- * @route PUT /products/:id
- */
-export const updateProduct = async (req, res) => {
+export const updateProduct = async (req, res, next) => {
   const { id } = req.params;
   const { name, description, imageUrl, price } = req.body;
 
@@ -113,23 +110,15 @@ export const updateProduct = async (req, res) => {
       data: updatedProduct,
     });
   } catch (error) {
-    return res.status(400).json({
-      message: 'Invalid product ID',
-    });
+    // return res.status(400).json({
+    //   message: 'Invalid product ID',
+    // });
+
+    next(error);
   }
 };
 
-/**
- * @function deleteProduct
- * @description
- * Deletes a product by ID.
- *
- * Design decisions:
- * - Uses findByIdAndDelete for single DB operation
- *
- * @route DELETE /products/:id
- */
-export const deleteProduct = async (req, res) => {
+export const deleteProduct = async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -145,8 +134,6 @@ export const deleteProduct = async (req, res) => {
       message: 'Product deleted successfully',
     });
   } catch (error) {
-    return res.status(400).json({
-      message: 'Invalid product ID',
-    });
+    next(error);
   }
 };
