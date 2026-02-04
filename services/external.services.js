@@ -5,9 +5,7 @@ export const fetchAndSaveTodo = async () => {
   try {
     const apiUrl = 'https://jsonplaceholder.typicode.com/todos/1';
 
-    const response = await axios.get(apiUrl);
-
-    const data = response.data;
+    const { data } = await axios.get(apiUrl);
 
     // Explicit mapping (do not trust external contracts)
     const mappedTodo = {
