@@ -5,27 +5,46 @@ import express from 'express';
 import { PORT } from './config/env.js';
 import productRouter from './routes/products.routes.js';
 import authRouter from './routes/auth.routes.js';
+import todoRouter from './routes/todo.route.js';
 import connectDB from './databases/mongoDB.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
-import todoRouter from './routes/todo.route.js';
+import { generalLimiter } from './middleware/rateLimit.middleware.js';
 
 const app = express();
 
-// Middleware
+/**
+ * Required for express-rate-limit to detect IP correctly
+ */
+app.set('trust proxy', 1);
+
+/**
+ * Global rate limiter
+ * Applies to ALL routes
+ */
+app.use(generalLimiter);
+
+/**
+ * Body parsers
+ */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(errorMiddleware);
 
-// Routes
-
+/**
+ * Routes
+ */
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/todos', todoRouter);
 
+/**
+ * ❗ Error middleware MUST be last
+ */
+app.use(errorMiddleware);
+
 let server;
 
 /**
- * Bootstrap server — immediate execution
+ * Bootstrap server
  */
 (async () => {
   try {
@@ -57,8 +76,9 @@ const shutdown = async (signal) => {
       });
     }
 
-    await mongoose.connection.close(false);
-    console.log('MongoDB connection closed');
+    // If mongoose is globally imported elsewhere
+    // await mongoose.connection.close(false);
+
     process.exit(0);
   } catch (error) {
     console.error('Shutdown error:', error.message);
